@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define mx 100005
+#define pii pair<int, int>
+int arr[mx], tree[mx*3], freq[mx];
+
+void init(int node, int b, int e)
+{
+    if(b == e)
+    {
+        tree[node] = freq[b];
+        return;
+    }
+    int left = node * 2;
+    int right = node * 2 + 1;
+    int mid = (b + e) / 2;
+    init(left, b, mid);
+    init(right, mid + 1, e);
+    tree[node] = max(tree[left], tree[right]);
+}
+
+int RMQ(int node, int b, int e, int i, int j)
+{
+    if(i <= b && j >= e)
+        return tree[node];
+    if(e < i || b > j)
+        return 0;
+    int left = node * 2;
+    int right = node * 2 + 1;
+    int mid = (b + e) / 2;
+    int p1 = RMQ(left, b, mid, i, j);
+    int p2 = RMQ(right, mid + 1, e, i, j);
+    return max(p1, p2);
+}
+
+int query(int n, int i, int j)
+{
+    int maxOcc, leftmost(0), rightmost(0), rng;
+    if(arr[i] == arr[j])
+        maxOcc = j - i + 1;
+    else
+    {
+        while(i > 0 && i <= j && arr[i] == arr[i-1])
+        {
+            i++;
+            leftmost++;
+        }
+        while(j >= i && j < n && arr[j] == arr[j+1])
+        {
+            j--;
+            rightmost++;
+        }
+        rng = RMQ(1, 1, n, i, j);
+        maxOcc = max(leftmost, max(rightmost, rng));
+    }
+    return maxOcc;
+}
+
+void freq_built(int n)
+{
+    map<int, int>cnt;
+    for(int i = 1; i <= n; i++)
+        cnt[arr[i]]++;
+    for(int i = 1; i <= n; i++)
+        freq[i] = cnt[arr[i]];
+    init(1, 1, n);
+}
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, i, j, kk, t, kase(1), q;
+    while(true)
+    {
+        cin>>n;
+        if(n == 0)
+            break;
+        cin>>q;
+        for(i = 1; i <= n; i++)
+            cin>>arr[i];
+        freq_built(n);
+        while(q--)
+        {
+            cin>>i>>j;
+            cout<<query(n, i, j)<<endl;
+        }
+    }
+    return 0;
+}
